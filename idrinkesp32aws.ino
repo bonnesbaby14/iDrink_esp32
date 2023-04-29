@@ -81,77 +81,75 @@ void messageHandler(char *topic, byte *payload, unsigned int length)
   const char *drink = doc["drink"];
   Serial.println(drink);
 
-  switch (drink)
+   if (strcmp(drink, "greyhound") == 0)
   {
-  case "greyhound":
     greyhound();
-    break;
-  case "tequila_sunrise":
-    tequila_sunrise();
-    break;
-  case "desarmador":
-    desarmador();
-    break;
-  case "greyhound":
-    greyhound();
-    break;
 
-  default:
-    break;
+  }else if(strcmp(drink, "tequila_sunrise") == 0){
+    tequila_sunrise();
+  }
+  else if(strcmp(drink, "desarmador") == 0){
+    desarmador();
+  }
+  else if(strcmp(drink, "cosmopolitan") == 0){
+    cosmopolitan();
   }
 }
 
 void tequila_sunrise()
 {
+  Serial.println("tequla");
 
   digitalWrite(jugo, HIGH);
-  sleep(2000);
+  sleep(4);
   digitalWrite(jugo, LOW);
 
   digitalWrite(tequila, HIGH);
-  sleep(1000);
+  sleep(2);
   digitalWrite(tequila, LOW);
 
   digitalWrite(granadina, HIGH);
-  sleep(500);
+  sleep(1);
   digitalWrite(granadina, LOW);
 }
 
 void desarmador()
 {
-
+  Serial.println("desar");
   digitalWrite(jugo, HIGH);
-  sleep(4000);
+  sleep(4);
   digitalWrite(jugo, LOW);
 
   digitalWrite(tequila, HIGH);
-  sleep(2000);
+  sleep(2);
   digitalWrite(tequila, LOW);
 }
 
 void cosmopolitan()
 {
+    Serial.println("cosmo");
   digitalWrite(jugo, HIGH);
-  sleep(4000);
+  sleep(4);
   digitalWrite(jugo, LOW);
 
   digitalWrite(vodka, HIGH);
-  sleep(2000);
+  sleep(2);
   digitalWrite(vodka, LOW);
 
   digitalWrite(granadina, HIGH);
-  sleep(500);
+  sleep(1);
   digitalWrite(granadina, LOW);
 }
 
 void greyhound()
 {
+    Serial.println("greu");
   digitalWrite(jugo, HIGH);
-  sleep(4000);
+  sleep(4);
   digitalWrite(jugo, LOW);
 
   digitalWrite(vodka, HIGH);
-  sleep(2000);
+  sleep(2);
   digitalWrite(vodka, LOW);
 }
 void setup()
@@ -160,13 +158,13 @@ void setup()
   pinMode(tequila, OUTPUT);
   digitalWrite(tequila, LOW);
 
-  inMode(granadina, OUTPUT);
+  pinMode(granadina, OUTPUT);
   digitalWrite(granadina, LOW);
 
-  inMode(vodka, OUTPUT);
+  pinMode(vodka, OUTPUT);
   digitalWrite(vodka, LOW);
 
-  inMode(jugo, OUTPUT);
+  pinMode(jugo, OUTPUT);
   digitalWrite(jugo, LOW);
 
   Serial.begin(115200);
