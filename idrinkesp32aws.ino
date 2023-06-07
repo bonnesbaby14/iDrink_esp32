@@ -3,21 +3,30 @@
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 #include "WiFi.h"
+#include <HTTPClient.h>
 
-#define AWS_IOT_PUBLISH_TOPIC "esp32/pub"
-#define AWS_IOT_SUBSCRIBE_TOPIC "esp32/sub"
+#define AWS_IOT_PUBLISH_TOPIC "IDRINK/pub"
+#define AWS_IOT_SUBSCRIBE_TOPIC "IDRINK/sub"
 
 int tequila = 16;
 int granadina = 17;
 int vodka = 18;
 int jugo = 19;
 
+
+int variable1=25;
+int variable2=25;
+int variable3=25;
+int variable4=25;
+
 WiFiClientSecure net = WiFiClientSecure();
 PubSubClient client(net);
 
+unsigned long previousMillis = 0;
+const unsigned long interval = 15000; // Intervalo de 1 minuto (60000 ms)
+
 void connectAWS()
 {
-
   WiFi.mode(WIFI_STA);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
@@ -41,7 +50,7 @@ void connectAWS()
   // Create a message handler
   client.setCallback(messageHandler);
 
-  Serial.println("Connecting to AWS IOT");
+  Serial.println("Connecting to AWS IoT");
 
   while (!client.connect(THINGNAME))
   {
@@ -69,6 +78,36 @@ void publishMessage()
   serializeJson(doc, jsonBuffer); // print to client
 
   client.publish(AWS_IOT_PUBLISH_TOPIC, jsonBuffer);
+
+  // Enviar los datos por POST a un servidor
+  HTTPClient http;
+  http.begin("https://idrink-api-prod-idrink-api-fqemyp.mo2.mogenius.io/send_leves"); // Reemplaza con la URL de tu servidor y la ruta correspondiente
+  DynamicJsonDocument jsonDoc(256);
+    jsonDoc["bottle1"] = variable1;
+    jsonDoc["bottle2"] = variable2;
+    jsonDoc["bottle3"] = variable3;
+    jsonDoc["bottle4"] = variable4;
+
+    // Convertir el objeto JSON a una cadena
+    String jsonString;
+    serializeJson(jsonDoc, jsonString);
+
+   
+    http.addHeader("Content-Type", "application/json");
+
+    // Enviar la solicitud POST con los datos en formato JSON
+    int httpResponseCode = http.POST(jsonString);
+
+    if (httpResponseCode > 0) {
+      Serial.print("HTTP Response code: ");
+      Serial.println(httpResponseCode);
+    } else {
+      Serial.print("Error in HTTP request: ");
+      Serial.println(http.errorToString(httpResponseCode).c_str());
+    }
+    
+
+    http.end();
 }
 
 void messageHandler(char *topic, byte *payload, unsigned int length)
@@ -81,80 +120,88 @@ void messageHandler(char *topic, byte *payload, unsigned int length)
   const char *drink = doc["drink"];
   Serial.println(drink);
 
-   if (strcmp(drink, "greyhound") == 0)
+  if (strcmp(drink, "greyhound") == 0)
   {
     greyhound();
-
-  }else if(strcmp(drink, "tequila_sunrise") == 0){
+  }
+  else if (strcmp(drink, "tequila_sunrise") == 0)
+  {
     tequila_sunrise();
   }
-  else if(strcmp(drink, "desarmador") == 0){
+  else if (strcmp(drink, "desarmador") == 0)
+  {
     desarmador();
   }
-  else if(strcmp(drink, "cosmopolitan") == 0){
+  else if (strcmp(drink, "cosmopolitan") == 0)
+  {
     cosmopolitan();
   }
 }
 
 void tequila_sunrise()
 {
-  Serial.println("tequla");
-
   digitalWrite(jugo, HIGH);
-  sleep(4);
+  delay(4000);
+  variable4=variable4-4;
   digitalWrite(jugo, LOW);
 
   digitalWrite(tequila, HIGH);
-  sleep(2);
+  delay(2000);
+  variable1=variable1-2;
   digitalWrite(tequila, LOW);
 
   digitalWrite(granadina, HIGH);
-  sleep(1);
+  delay(1000);
+  variable2=variable2-1;
   digitalWrite(granadina, LOW);
 }
 
 void desarmador()
 {
-  Serial.println("desar");
   digitalWrite(jugo, HIGH);
-  sleep(4);
+  delay(8000);
+  variable4=variable4-8;
   digitalWrite(jugo, LOW);
 
   digitalWrite(tequila, HIGH);
-  sleep(2);
+  delay(5000);
+  variable1=variable1-5;
   digitalWrite(tequila, LOW);
 }
 
 void cosmopolitan()
 {
-    Serial.println("cosmo");
   digitalWrite(jugo, HIGH);
-  sleep(4);
+  delay(4000);
+  variable4=variable4-4;
   digitalWrite(jugo, LOW);
 
   digitalWrite(vodka, HIGH);
-  sleep(2);
+  delay(2000);
+  variable3=variable3-2;
   digitalWrite(vodka, LOW);
 
   digitalWrite(granadina, HIGH);
-  sleep(1);
+  variable2=variable2-1;
+  delay(1000);
   digitalWrite(granadina, LOW);
 }
 
 void greyhound()
 {
-    Serial.println("greu");
   digitalWrite(jugo, HIGH);
-  sleep(4);
+  delay(4000);
+  variable4=variable4-4;
   digitalWrite(jugo, LOW);
 
   digitalWrite(vodka, HIGH);
-  sleep(2);
+  delay(2000);
+  variable3=variable3-2;
   digitalWrite(vodka, LOW);
 }
+
 void setup()
 {
-
   pinMode(tequila, OUTPUT);
   digitalWrite(tequila, LOW);
 
@@ -169,11 +216,26 @@ void setup()
 
   Serial.begin(115200);
   connectAWS();
+
+  previousMillis = millis(); // Inicializar el tiempo anterior
 }
 
 void loop()
 {
-
   client.loop();
-  delay(100);
+
+  unsigned long currentMillis = millis(); // Obtener el tiempo actual
+
+  if (currentMillis - previousMillis >= interval)
+  {
+    // Actualizar las variables y enviar los datos
+    //int variable1 = 2; // Actualiza el valor de variable1
+    //int variable2 = 1; // Actualiza el valor de variable2
+    //int variable3 = 3; // Actualiza el valor de variable3
+    //int variable4 = 4; // Actualiza el valor de variable4
+
+    publishMessage();
+
+    previousMillis = currentMillis; // Guardar el tiempo actual como tiempo anterior
+  }
 }
